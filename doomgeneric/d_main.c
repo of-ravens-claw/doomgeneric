@@ -402,7 +402,7 @@ boolean D_GrabMouseCallback(void)
     return (gamestate == GS_LEVEL) && !demoplayback && !advancedemo;
 }
 
-void doomgeneric_Tick()
+void doomgeneric_Tick(void)
 {
     // frame syncronous IO operations
     I_StartFrame ();

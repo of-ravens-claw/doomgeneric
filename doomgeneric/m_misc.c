@@ -48,6 +48,10 @@
 #include "w_wad.h"
 #include "z_zone.h"
 
+#ifdef __ORBIS__
+#include <kernel.h>
+#endif
+
 //
 // Create a directory
 //
@@ -56,6 +60,8 @@ void M_MakeDirectory(char *path)
 {
 #ifdef _WIN32
     mkdir(path);
+#elif defined(__ORBIS__)
+    sceKernelMkdir(path, 0755);
 #else
     mkdir(path, 0755);
 #endif

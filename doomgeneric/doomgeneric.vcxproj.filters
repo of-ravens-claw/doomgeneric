@@ -255,13 +255,16 @@
     <ClCompile Include="doomgeneric.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="doomgeneric_win.c">
+    <ClCompile Include="doomgeneric_ps4.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="i_input.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="i_video.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="doomgeneric_win.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

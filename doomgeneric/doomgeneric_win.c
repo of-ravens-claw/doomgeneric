@@ -1,3 +1,4 @@
+#ifdef _WIN32
 #include "doomkeys.h"
 
 #include "doomgeneric.h"
@@ -58,6 +59,8 @@ static unsigned char convertToDoomKey(unsigned char key)
 
 static void addKeyToQueue(int pressed, unsigned char keyCode)
 {
+	printf("[AddKeyToQueue]: Key 0x%02X, press: %d\n", keyCode, pressed);
+
 	unsigned char key = convertToDoomKey(keyCode);
 
 	unsigned short keyData = (pressed << 8) | key;
@@ -208,3 +211,4 @@ int main(int argc, char **argv)
 
     return 0;
 }
+#endif

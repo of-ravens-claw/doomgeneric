@@ -1607,6 +1607,11 @@ G_SaveGame
     sendsave = true;
 }
 
+#ifdef __ORBIS__
+#include <kernel.h>
+#define rename(x, y) sceKernelRename(x, y)
+#endif
+
 void G_DoSaveGame (void) 
 { 
     char *savegame_file;

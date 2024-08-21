@@ -8,3 +8,6 @@
 .vs/
 Debug/
 Release/
+ORBIS_Debug/
+ORBIS_Release/
+*.WAD

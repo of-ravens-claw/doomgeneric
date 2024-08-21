@@ -58,6 +58,10 @@
 #define DEFAULT_RAM 6 /* MiB */
 #define MIN_RAM     6  /* MiB */
 
+#ifdef __ORBIS__
+#include <stdlib.h>
+size_t sceLibcHeapSize = 32 * (1024 * 1024); // 32 mb
+#endif
 
 typedef struct atexit_listentry_s atexit_listentry_t;
 
@@ -123,9 +127,12 @@ static byte *AutoAllocMemory(int *size, int default_ram, int min_ram)
 
         if (zonemem == NULL)
         {
+            printf("malloc failed (%d | %d)\n", *size, default_ram);
             default_ram -= 1;
         }
     }
+
+    printf("allocated ok (%d)\n", default_ram);
 
     return zonemem;
 }
@@ -264,7 +271,7 @@ void I_Quit (void)
 #endif
 }
 
-#if !defined(_WIN32) && !defined(__MACOSX__) && !defined(__DJGPP__)
+#if !defined(_WIN32) && !defined(__MACOSX__) && !defined(__DJGPP__) && !defined(__ORBIS__)
 #define ZENITY_BINARY "/usr/bin/zenity"
 
 // returns non-zero if zenity is available
@@ -456,7 +463,8 @@ void I_Error (char *error, ...)
 
 #else
     {
-        ZenityErrorBox(msgbuf);
+        //ZenityErrorBox(msgbuf);
+        printf("ErrorBox: %s\n", msgbuf);
     }
 #endif
 

@@ -97,4 +97,8 @@
 #undef ORIGCODE
 
 /* Define to the directory where all game files are located */
+#ifdef __ORBIS__
+#define FILES_DIR "/app0"
+#else
 #define FILES_DIR "."
+#endif
