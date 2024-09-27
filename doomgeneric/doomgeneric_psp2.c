@@ -101,8 +101,6 @@ SceUID g_displayBlock;
 
 void DG_Init(void)
 {
-	// Maybe we should create a separate one and copy the data over instead?
-
 	// We need the data to be 256kb aligned, but the previous malloc call won't do.
 	// Thus, we're freeing the data that was previously allocated, and allocating it properly.
 	free(DG_ScreenBuffer);
@@ -115,8 +113,6 @@ void DG_Init(void)
 	}
 	sceKernelGetMemBlockBase(g_displayBlock, (void**)&DG_ScreenBuffer);
 
-	// TODO: The colors are wrong.
-	// Game probably uses ARGB instead of ABGR
 	SceDisplayFrameBuf frame = 
 	{
 		sizeof(SceDisplayFrameBuf),
@@ -183,6 +179,8 @@ int main(int argc, char **argv)
 		doomgeneric_Tick();
 	}
 
+	// this will likely never run but alas
+	sceDisplaySetFrameBuf(NULL, SCE_DISPLAY_UPDATETIMING_NEXTHSYNC);
 	sceKernelFreeMemBlock(g_displayBlock);
 }
 #endif
