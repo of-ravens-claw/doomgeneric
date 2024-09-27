@@ -10,4 +10,7 @@ Debug/
 Release/
 ORBIS_Debug/
 ORBIS_Release/
+PSVita_Debug/
+PSVita_Release/
 *.WAD
+*.VC*

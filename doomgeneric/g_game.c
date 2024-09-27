@@ -1607,6 +1607,7 @@ G_SaveGame
     sendsave = true;
 }
 
+// This is silly.
 #ifdef __ORBIS__
 #include <kernel.h>
 #define rename(x, y) sceKernelRename(x, y)

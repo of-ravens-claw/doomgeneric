@@ -27,7 +27,9 @@
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 #else
+#ifndef __psp2__
 #include <unistd.h>
+#endif
 #endif
 
 #ifdef ORIGCODE
@@ -58,7 +60,7 @@
 #define DEFAULT_RAM 6 /* MiB */
 #define MIN_RAM     6  /* MiB */
 
-#ifdef __ORBIS__
+#if defined(__ORBIS__) || defined(__psp2__)
 #include <stdlib.h>
 size_t sceLibcHeapSize = 32 * (1024 * 1024); // 32 mb
 #endif
@@ -271,7 +273,7 @@ void I_Quit (void)
 #endif
 }
 
-#if !defined(_WIN32) && !defined(__MACOSX__) && !defined(__DJGPP__) && !defined(__ORBIS__)
+#if !defined(_WIN32) && !defined(__MACOSX__) && !defined(__DJGPP__) && !defined(__ORBIS__) && !defined(__psp2__)
 #define ZENITY_BINARY "/usr/bin/zenity"
 
 // returns non-zero if zenity is available

@@ -267,6 +267,9 @@
     <ClCompile Include="doomgeneric_win.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="doomgeneric_psp2.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="am_map.h">

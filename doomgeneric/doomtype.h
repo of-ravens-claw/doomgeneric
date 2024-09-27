@@ -25,15 +25,14 @@
 // Outside Windows, we use strings.h for str[n]casecmp.
 
 
-#ifdef _WIN32
-
+#if defined(_WIN32)
 #define strcasecmp _stricmp
 #define strncasecmp _strnicmp
-
+#elif defined(__psp2__)
+// strcasecmp is located in string.h on the psp2
+#include <string.h>
 #else
-
 #include <strings.h>
-
 #endif
 
 
@@ -46,7 +45,7 @@
 // to disk.
 //
 
-#ifdef __GNUC__
+#if defined(__GNUC__) || defined(__SNC__)
 #define PACKEDATTR __attribute__((packed))
 #else
 #define PACKEDATTR
@@ -70,6 +69,7 @@ typedef bool boolean;
 
 #else
 
+// I feel like we should #include <stdbool.h> and add a typedef for `boolean`.
 typedef enum 
 {
     false	= 0,

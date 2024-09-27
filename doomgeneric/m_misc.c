@@ -31,6 +31,8 @@
 #ifdef _MSC_VER
 #include <direct.h>
 #endif
+#elif defined(__psp2__) || defined(__ORBIS__)
+#include <kernel.h>
 #else
 #include <sys/stat.h>
 #include <sys/types.h>
@@ -48,10 +50,6 @@
 #include "w_wad.h"
 #include "z_zone.h"
 
-#ifdef __ORBIS__
-#include <kernel.h>
-#endif
-
 //
 // Create a directory
 //
@@ -62,6 +60,8 @@ void M_MakeDirectory(char *path)
     mkdir(path);
 #elif defined(__ORBIS__)
     sceKernelMkdir(path, 0755);
+#elif defined(__psp2__)
+	sceIoMkdir(path, 0755);
 #else
     mkdir(path, 0755);
 #endif

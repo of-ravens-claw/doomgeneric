@@ -97,8 +97,10 @@
 #undef ORIGCODE
 
 /* Define to the directory where all game files are located */
-#ifdef __ORBIS__
+#if defined(__ORBIS__)
 #define FILES_DIR "/app0"
+#elif defined(__psp2__)
+#define FILES_DIR "app0:" // maybe somewhere else?
 #else
 #define FILES_DIR "."
 #endif

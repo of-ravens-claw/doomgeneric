@@ -855,12 +855,6 @@ void DG_DrawFrame(void)
 
 void DG_SleepMs(uint32_t ms)
 {
-	static bool no = false;
-	if (no)
-	{
-		writeColor(0, 0, 0, 0);
-	}
-
 	sceKernelUsleep(ms * 1000);
 }
 
@@ -873,10 +867,14 @@ uint32_t DG_GetTicksMs(void)
 	*/
 
 	// inspired by the x11 implementation, doesn't seem to work great on real hw. (too fast)
-
+	/*
 	SceRtcDateTime cur_date;
 	sceRtcGetCurrentClock(&cur_date, 0);
-	return cur_date.second * 1000 + cur_date.microsecond / 1000; 
+	return cur_date.second * 1000 + cur_date.microsecond / 1000;
+	*/
+
+	// approach used by the rage code.
+	return (sceKernelReadTsc() * 1000) / sceKernelGetTscFrequency();
 }
 
 int DG_GetKey(int* pressed, unsigned char* doomKey)
