@@ -62,7 +62,7 @@
 
 #if defined(__ORBIS__) || defined(__psp2__)
 #include <stdlib.h>
-size_t sceLibcHeapSize = 32 * (1024 * 1024); // 32 mb
+size_t sceLibcHeapSize = 16 * (1024 * 1024);
 #endif
 
 typedef struct atexit_listentry_s atexit_listentry_t;
@@ -457,16 +457,13 @@ void I_Error (char *error, ...)
                                         message,
                                         NULL);
     }
-#elif defined(__DJGPP__)
+#elif defined(__DJGPP__) || defined(__ORBIS__) || defined(__psp2__)
     {
-        printf("%s\n", msgbuf);
-        exit(-1);
+        printf("I_Error: %s\n", msgbuf);
     }
-
 #else
     {
-        //ZenityErrorBox(msgbuf);
-        printf("ErrorBox: %s\n", msgbuf);
+        ZenityErrorBox(msgbuf);
     }
 #endif
 

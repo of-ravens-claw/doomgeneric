@@ -1,12 +1,14 @@
 #ifdef __ORBIS__
 
-#include "doomkeys.h"
+// This doesn't work very well, and it will crash if you leave it running on the splash screen.
+// TODO: We shouldn't need libSceGnm at ALL!
+// We should be able to just use libSceVideoOut and write directly to the buffer, very similarly to the PSP2.
 
+#include "doomkeys.h"
 #include "doomgeneric.h"
 
 #include <stdio.h>
 #include <string.h>
-#include <ctype.h>
 
 #include <assert.h>
 #include <unistd.h>
@@ -18,18 +20,22 @@
 #include <libsysmodule.h>
 #include <gnm.h>
 
+#define USE_GAMEPAD_AS_KEYBOARD
 //#define USE_PHYSICAL_KEYBOARD
-#define USE_IME_KEYBOARD // still a physical keyboard, but a different library.
-//#define USE_GAMEPAD_AS_KEYBOARD
+//#define USE_IME_KEYBOARD // still a physical keyboard, but a different library.
 
 // If you're using a gamepad as a keyboard, the controls are as follows:
-// D-PAD    - Arrow keys
-// R1       - Right Ctrl
-// L1       - Space
-// Circle   - Escape
-// Cross    - Enter
-// Square   - Right Shift
-// Triangle - Y (Needed for the difficulty prompt, ugh)
+//
+// R1       - Fire key
+// L1       - Use key
+//
+// Options  - Confirm key
+// Touchpad - Return key
+//
+// Triangle - Up Arrow
+// Circle   - Left Arrow
+// Square   - Right Arrow
+// Cross    - Down Arrow
 
 #ifdef USE_GAMEPAD_AS_KEYBOARD
 #include <pad.h>
@@ -43,61 +49,19 @@
 
 #ifdef USE_IME_KEYBOARD
 #include <libime.h>
-#pragma comment( lib , "SceIme_stub_weak" )
+#pragma comment(lib, "SceIme_stub_weak")
 #endif
 
-#pragma comment(lib, "SceSysModule_stub_weak")
-#pragma comment(lib, "SceUserService_stub_weak")
+#define KEYQUEUE_SIZE 16
 
-#define KEYQUEUE_SIZE (16) // temporary
-
-static unsigned short s_KeyQueue[KEYQUEUE_SIZE];
-static unsigned int s_KeyQueueWriteIndex = 0;
-static unsigned int s_KeyQueueReadIndex = 0;
+static uint16_t s_KeyQueue[KEYQUEUE_SIZE];
+static uint32_t s_KeyQueueWriteIndex = 0;
+static uint32_t s_KeyQueueReadIndex = 0;
 
 #ifdef USE_GAMEPAD_AS_KEYBOARD
-static unsigned char ConvertToDoomKey(unsigned int _key)
+static uint8_t ConvertToDoomKey(uint32_t key)
 {
-	unsigned char key = 0;
-	switch (_key)
-	{
-	case SCE_PAD_BUTTON_CROSS:
-		key = KEY_ENTER;
-		break;
-	case SCE_PAD_BUTTON_CIRCLE:
-		key = KEY_ESCAPE;
-		break;
-	case SCE_PAD_BUTTON_SQUARE:
-		key = KEY_RSHIFT;
-		break;
-	case SCE_PAD_BUTTON_TRIANGLE:
-		key = 'y';
-		break;
-
-	case SCE_PAD_BUTTON_LEFT:
-		key = KEY_LEFTARROW;
-		break;
-	case SCE_PAD_BUTTON_RIGHT:
-		key = KEY_RIGHTARROW;
-		break;
-	case SCE_PAD_BUTTON_UP:
-		key = KEY_UPARROW;
-		break;
-	case SCE_PAD_BUTTON_DOWN:
-		key = KEY_DOWNARROW;
-		break;
-
-	case SCE_PAD_BUTTON_R1:
-		key = KEY_FIRE;
-		break;
-	case SCE_PAD_BUTTON_L1:
-		key = KEY_USE;
-		break;
-
-	default: break;
-	}
-
-	return key;
+	return key & 0xFF;
 }
 #endif
 
@@ -108,9 +72,9 @@ static unsigned char ConvertToDoomKey(unsigned int _key)
 #define SCE_DBG_KEYBOARD_CODE_L_SHIFT (0xF2)
 #define SCE_DBG_KEYBOARD_CODE_R_SHIFT (0xF3)
 
-static unsigned char ConvertToDoomKey(unsigned int _key)
+static uint8_t ConvertToDoomKey(uint32_t _key)
 {
-	unsigned char key = 0;
+	uint8_t key = 0;
 	switch (_key)
 	{
 	case SCE_DBG_KEYBOARD_CODE_ENTER:
@@ -148,7 +112,7 @@ static unsigned char ConvertToDoomKey(unsigned int _key)
 
 	// oh fuck.
 	default:
-		key = _key;
+		key = _key & 0xFF;
 		break;
 	}
 
@@ -157,9 +121,9 @@ static unsigned char ConvertToDoomKey(unsigned int _key)
 #endif
 
 #ifdef USE_IME_KEYBOARD
-static unsigned char ConvertToDoomKey(unsigned int _key)
+static uint8_t ConvertToDoomKey(uint32_t _key)
 {
-	unsigned char key = 0;
+	uint8_t key = 0;
 	switch (_key)
 	{
 	case 0x28:
@@ -202,7 +166,7 @@ static unsigned char ConvertToDoomKey(unsigned int _key)
 		break;
 
 	default:
-		key = _key;
+		key = _key & 0xFF;
 		break;
 	}
 
@@ -210,13 +174,11 @@ static unsigned char ConvertToDoomKey(unsigned int _key)
 }
 #endif
 
-static void AddKeyToQueue(int pressed, unsigned int keyCode)
+static void AddKeyToQueue(bool pressed, uint32_t keyCode)
 {
-	printf("[AddKeyToQueue]: Key 0x%02X, press: %d\n", keyCode, pressed);
-
-	unsigned char key = ConvertToDoomKey(keyCode);
-
-	unsigned short keyData = (pressed << 8) | key;
+	// printf("[AddKeyToQueue]: Key 0x%02X, press: %d\n", keyCode, pressed);
+	uint8_t key = ConvertToDoomKey(keyCode);
+	uint16_t keyData = (uint16_t)(pressed << 8 | key);
 
 	s_KeyQueue[s_KeyQueueWriteIndex] = keyData;
 	s_KeyQueueWriteIndex++;
@@ -229,7 +191,7 @@ static void AddKeyToQueue(int pressed, unsigned int keyCode)
 #define FLIP_RATE 0 // 0: no fliprate is set. 1: 30fps on 60Hz video output  2: 20fps
 #define FLIP_MODE SCE_VIDEO_OUT_FLIP_MODE_VSYNC // SceVideoOutFlipMode
 
-#define VIDEO_MEMORY_STACK_SIZE (1024 * 1024 * 192)
+#define VIDEO_MEMORY_STACK_SIZE (192 * (1024 * 1024)) // 192mb
 
 using namespace sce;
 
@@ -523,12 +485,15 @@ void allocateDisplayBuffers(VideoMemory* videoMem, RenderBuffer* renderBuffers, 
 // wait until no flip is on pending
 void waitFlipAllFinished(int videoOutHandle, SceKernelEqueue* eqFlip)
 {
+	SceKernelEvent ev;
+	int out;
+	int ret;
+
 	while (sceVideoOutIsFlipPending(videoOutHandle) != 0) 
 	{
-		SceKernelEvent ev;
-		int out;
-		int ret = sceKernelWaitEqueue(*eqFlip, &ev, 1, &out, NULL);
-		assert((ret >= 0));
+		ret = sceKernelWaitEqueue(*eqFlip, &ev, 1, &out, NULL);
+		assert(ret >= 0);
+		(void)ret; // for release builds.
 	}
 }
 
@@ -555,32 +520,6 @@ void waitFlipArg(int videoOutHandle, SceKernelEqueue* eqFlip, int64_t flipArg)
 	}
 }
 
-static void configureWithResolution(int handle, RenderBufferAttributes* attr)
-{
-	bool isTile = false;
-	int width, height;
-
-	if (sceKernelIsNeoMode())
-	{
-		SceVideoOutResolutionStatus status;
-		if (SCE_OK == sceVideoOutGetResolutionStatus(handle, &status) && status.fullHeight > 1080)
-		{
-			height = 2160;
-		}
-		else 
-		{
-			height = 1080;
-		}
-	}
-	else 
-	{
-		height = 720;
-	}
-	width = height * 16 / 9;
-
-	attr->init(width, height, isTile);
-}
-
 #pragma endregion
 
 namespace
@@ -593,8 +532,7 @@ namespace
 	VideoMemory videoMem;
 }
 
-static int g_initialUser;
-static int g_padHandle; // we're reusing this for the physical keyboard, don't ask.
+static int g_inputHandle;
 
 #ifdef USE_IME_KEYBOARD
 void HandleIMEKeyboardEvent(void* arg, const SceImeEvent* e)
@@ -639,53 +577,53 @@ void HandleIMEKeyboardEvent(void* arg, const SceImeEvent* e)
 
 void DG_Init(void)
 {
-	int ret = 0;
+	static int g_initialUser = 0;
+	int ret;
 
 	ret = sceUserServiceInitialize(NULL);
-	assert((ret >= 0));
+	assert(ret == SCE_OK);
 
 	ret = sceUserServiceGetInitialUser(&g_initialUser);
-	assert((ret >= 0));
+	assert(ret == SCE_OK);
 
 #ifdef USE_GAMEPAD_AS_KEYBOARD
 	ret = scePadInit();
-	assert((ret >= 0));
+	assert(ret == SCE_OK);
 
 	ret = scePadOpen(g_initialUser, SCE_PAD_PORT_TYPE_STANDARD, 0, NULL);
-	assert((ret >= 0));
-	g_padHandle = ret;
+	assert(ret >= 0);
+	g_inputHandle = ret;
 #endif
 
 #ifdef USE_PHYSICAL_KEYBOARD
 	ret = sceSysmoduleLoadModule(SCE_SYSMODULE_RESERVED50);
-	assert((ret >= 0));
+	assert(ret == SCE_SYSMODULE_LOADED);
 
 	ret = sceDbgKeyboardInit();
-	assert((ret >= 0));
+	assert(ret == SCE_OK);
 
 	ret = sceDbgKeyboardOpen(g_initialUser, SCE_DBG_KEYBOARD_PORT_TYPE_STANDARD, 0, NULL);
-	assert((ret >= 0));
-	g_padHandle = ret;
+	assert(ret >= 0);
+	g_inputHandle = ret;
 #endif
 
 #ifdef USE_IME_KEYBOARD
 	ret = sceSysmoduleLoadModule(SCE_SYSMODULE_LIBIME);
-	assert((ret >= 0));
+	assert(ret == SCE_SYSMODULE_LOADED);
 
 	SceImeKeyboardParam kparam = {};
 	kparam.option = SCE_IME_KEYBOARD_OPTION_DEFAULT;
 	kparam.handler = HandleIMEKeyboardEvent;
 
 	ret = sceImeKeyboardOpen(g_initialUser, &kparam);
-	assert((ret >= 0));
-
-	g_padHandle = 0; // please the compiler.
+	assert(ret >= 0);
+	g_inputHandle = ret; // not actually used, but the compiler complains, so.
 #endif
 
 	// setup VideoOut and acquire handle
 	videoOutHandle = initializeVideoOut(&eqFlip);
 
-	configureWithResolution(videoOutHandle, &attr);
+	attr.init(DOOMGENERIC_RESX, DOOMGENERIC_RESY, false);
 
 	// setup direct memory for display buffers
 	videoMem.init(VIDEO_MEMORY_STACK_SIZE);
@@ -697,75 +635,44 @@ void DG_Init(void)
 	int startIndex = 0;
 	initializeDisplayBuffer(videoOutHandle, renderBuffers, DISPLAY_BUFFER_NUM, startIndex);
 
-
 	// this should be called regularly
 	sce::Gnm::submitDone();
 
 	// set flip conditions
 	ret = sceVideoOutSetFlipRate(videoOutHandle, FLIP_RATE);
-	assert((ret >= 0));
+	assert(ret >= 0);
 
 	// loop setup
 	bufferIndex = 0;
 
-	memset(s_KeyQueue, 0, KEYQUEUE_SIZE * sizeof(unsigned short));
-}
-
-/*
- * simple functions to draw to surface by cpu. EXTREMELY SLOW. Use GPU for real applications.
- */
-static void writeColor(RenderBuffer* rb, int x, int y, uint32_t color)
-{
-	if (!rb) return;
-
-	uintptr_t baseAddress = (uintptr_t)rb->getAddress();
-
-	if (rb->isTile())
-	{
-		puts("tiled");
-		uint64_t offset = rb->getTiledByteOffset(x, y); // this is EXTREMELY SLOW
-		*((uint32_t*)(baseAddress + offset)) = color;
-	}
-	else // linear
-	{
-		puts("linear");
-		int pixel = (y * rb->getPitch()) + x;
-		((uint32_t*)baseAddress)[pixel] = color; // this is still very SLOW
-	}
+	memset(s_KeyQueue, 0, KEYQUEUE_SIZE * sizeof(uint16_t));
 }
 
 static void HandleKeyInput(void)
 {
-	// this is causing random freezes, or at least I think so.
+	int ret;
 
 #ifdef USE_GAMEPAD_AS_KEYBOARD
 	// this is far from ideal, but we need to deal with inputs somewhere...
-	ScePadData data = {};
-	scePadReadState(g_padHandle, &data);
+	ScePadData pad = {};
+	ret = scePadReadState(g_inputHandle, &pad);
+	assert(ret == SCE_OK);
 
-#define MAP_KEY(key) AddKeyToQueue((data.buttons & (key)) == (key), (key))
+	AddKeyToQueue((pad.buttons & SCE_PAD_BUTTON_OPTIONS) == SCE_PAD_BUTTON_OPTIONS, KEY_ENTER);
+	AddKeyToQueue((pad.buttons & SCE_PAD_BUTTON_TOUCH_PAD) == SCE_PAD_BUTTON_TOUCH_PAD, KEY_ESCAPE);
 
-	MAP_KEY(SCE_PAD_BUTTON_CROSS);
-	MAP_KEY(SCE_PAD_BUTTON_CIRCLE);
-	MAP_KEY(SCE_PAD_BUTTON_SQUARE);
-	MAP_KEY(SCE_PAD_BUTTON_TRIANGLE);
+	AddKeyToQueue((pad.buttons & SCE_PAD_BUTTON_TRIANGLE) == SCE_PAD_BUTTON_TRIANGLE, KEY_UPARROW);
+	AddKeyToQueue((pad.buttons & SCE_PAD_BUTTON_SQUARE) == SCE_PAD_BUTTON_SQUARE, KEY_LEFTARROW);
+	AddKeyToQueue((pad.buttons & SCE_PAD_BUTTON_CIRCLE) == SCE_PAD_BUTTON_CIRCLE, KEY_RIGHTARROW);
+	AddKeyToQueue((pad.buttons & SCE_PAD_BUTTON_CROSS) == SCE_PAD_BUTTON_CROSS, KEY_DOWNARROW);
 
-	MAP_KEY(SCE_PAD_BUTTON_LEFT);
-	MAP_KEY(SCE_PAD_BUTTON_RIGHT);
-	MAP_KEY(SCE_PAD_BUTTON_UP);
-	MAP_KEY(SCE_PAD_BUTTON_DOWN);
-
-	MAP_KEY(SCE_PAD_BUTTON_R1);
-	MAP_KEY(SCE_PAD_BUTTON_L1);
-
-#undef MAP_KEY
+	AddKeyToQueue((pad.buttons & SCE_PAD_BUTTON_R1) == SCE_PAD_BUTTON_R1, KEY_FIRE);
+	AddKeyToQueue((pad.buttons & SCE_PAD_BUTTON_L1) == SCE_PAD_BUTTON_L1, KEY_USE);
 #endif
 
 #ifdef USE_PHYSICAL_KEYBOARD
-	int ret = 0;
-
 	SceDbgKeyboardData data = { };
-	ret = sceDbgKeyboardReadState(g_padHandle, &data);
+	ret = sceDbgKeyboardReadState(g_inputHandle, &data);
 	if (ret == SCE_OK)
 	{
 		for (int i = 0; i < data.length; i++)
@@ -794,8 +701,8 @@ static void HandleKeyInput(void)
 #endif
 
 #ifdef USE_IME_KEYBOARD
-	int ret = sceImeUpdate(HandleIMEKeyboardEvent);
-	assert((ret >= 0));
+	ret = sceImeUpdate(HandleIMEKeyboardEvent);
+	assert(ret >= 0);
 #endif
 }
 
@@ -803,8 +710,7 @@ void DG_DrawFrame(void)
 {
 	const int flipArgInitValue = 0; // the system sets flipArg to -1 at sceVideoOutOpen
 	static int64_t flipArg = flipArgInitValue;
-
-	int ret = 0;
+	int ret;
 	RenderBuffer* rb = &renderBuffers[bufferIndex];
 
 	// cpu process which does not override display buffers can be put here before waitFlipArg().
@@ -817,18 +723,15 @@ void DG_DrawFrame(void)
 
 	// this is where you'd inject your own code.
 	// in our case, we're going to copy doom to the buffer.
+	// note: this is slow (compared to the gpu, it's more than good enough for doom though)
+	for (int y = 0; y < DOOMGENERIC_RESY; y++)
 	{
-		// note: this is slow (compared to the gpu, it's more than good enough for doom though)
-		for (int y = 0; y < DOOMGENERIC_RESY; y++)
+		for (int x = 0; x < DOOMGENERIC_RESX; x++)
 		{
-			for (int x = 0; x < DOOMGENERIC_RESX; x++)
-			{
-				int pixel = (y * rb->getPitch()) + x;
-				((uint32_t*)rb->getAddress())[pixel] = DG_ScreenBuffer[pixel];
-			}
+			int pixel = (y * rb->getPitch()) + x;
+			((uint32_t*)rb->getAddress())[pixel] = DG_ScreenBuffer[pixel];
 		}
 	}
-	//sceKernelUsleep(10 * 1000);
 
 	// Flush Garlic for memory base synchronization after CPU-write to WC_GARLIC before video-out
 	// flushGarlic is NOT necessary if the draw is done by gc or compute shader (but need to flush L2-cache in that case)
@@ -837,7 +740,7 @@ void DG_DrawFrame(void)
 	// request flip to the buffer
 	// with gnm rendering this can be done by submitAndFlipCommandBuffers()
 	ret = sceVideoOutSubmitFlip(videoOutHandle, rb->getDisplayBufferIndex(), FLIP_MODE, flipArg);
-	assert((ret >= 0));
+	assert(ret >= 0);
 
 	rb->setFlipArg(flipArg); // keep the flipArg for this DisplayBuffer
 
@@ -860,21 +763,7 @@ void DG_SleepMs(uint32_t ms)
 
 uint32_t DG_GetTicksMs(void)
 {
-	/*
-	SceRtcTick cur_tick;
-	sceRtcGetCurrentTick(&cur_tick);
-	return (uint32_t)cur_tick.tick;
-	*/
-
-	// inspired by the x11 implementation, doesn't seem to work great on real hw. (too fast)
-	/*
-	SceRtcDateTime cur_date;
-	sceRtcGetCurrentClock(&cur_date, 0);
-	return cur_date.second * 1000 + cur_date.microsecond / 1000;
-	*/
-
-	// approach used by the rage code.
-	return (sceKernelReadTsc() * 1000) / sceKernelGetTscFrequency();
+	return (sceKernelGetProcessTimeCounter() * 1000) / sceKernelGetProcessTimeCounterFrequency();
 }
 
 int DG_GetKey(int* pressed, unsigned char* doomKey)
@@ -905,14 +794,13 @@ int main(int argc, char **argv)
 {
 	doomgeneric_Create(argc, argv);
 
-	static bool running = true;
-	while (running)
+	while (true)
 	{
 		doomgeneric_Tick();
 	}
 
 #ifdef USE_GAMEPAD_AS_KEYBOARD
-	scePadClose(g_padHandle);
+	scePadClose(g_inputHandle);
 #endif
 
 	// wait until all flips done.

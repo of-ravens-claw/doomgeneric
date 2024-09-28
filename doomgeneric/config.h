@@ -100,7 +100,7 @@
 #if defined(__ORBIS__)
 #define FILES_DIR "/app0"
 #elif defined(__psp2__)
-#define FILES_DIR "app0:" // maybe somewhere else?
+#define FILES_DIR "app0:"
 #else
 #define FILES_DIR "."
 #endif

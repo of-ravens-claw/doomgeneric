@@ -12,6 +12,12 @@ void D_DoomMain (void);
 
 void doomgeneric_Create(int argc, char **argv)
 {
+	printf("%d command-line args:\n", argc);
+	for (int k = 0; k < argc; k++)
+	{
+		printf("'%s'\n", argv[k]);
+	}
+
 	// save arguments
     myargc = argc;
     myargv = argv;

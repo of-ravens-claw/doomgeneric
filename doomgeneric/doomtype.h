@@ -69,13 +69,19 @@ typedef bool boolean;
 
 #else
 
-// I feel like we should #include <stdbool.h> and add a typedef for `boolean`.
-typedef enum 
+#if defined __has_include
+#  if __has_include (<stdbool.h>)
+#    include <stdbool.h>
+	 typedef bool boolean;
+#  endif
+#else
+typedef enum
 {
-    false	= 0,
-    true	= 1,
-	undef	= 0xFFFFFFFF
+	false = 0,
+	true = 1,
+	undef = 0xFFFFFFFF
 } boolean;
+#endif
 
 #endif
 

@@ -1,19 +1,17 @@
 #ifdef __psp2__
 
 #include "doomkeys.h"
-
 #include "doomgeneric.h"
 
-#include <stddef.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <string.h>
-#include <ctype.h>
 
 // psp2 includes
 #include <kernel.h>
 #include <display.h>
 #include <ctrl.h>
+#include <power.h>
 
 #define ALIGN(value, align)     (((value) + (align) - 1) & ~((align) - 1))
 
@@ -23,48 +21,9 @@ static uint16_t s_KeyQueue[KEYQUEUE_SIZE];
 static uint32_t s_KeyQueueWriteIndex = 0;
 static uint32_t s_KeyQueueReadIndex = 0;
 
-static uint8_t ConvertToDoomKey(uint32_t _key)
+static void AddKeyToQueue(bool pressed, uint8_t keyCode)
 {
-	uint8_t key = 0;
-	switch (_key)
-	{
-	case SCE_CTRL_START:
-		key = KEY_ENTER;
-		break;
-	case SCE_CTRL_SELECT:
-		key = KEY_ESCAPE;
-		break;
-
-	case SCE_CTRL_SQUARE:
-		key = KEY_LEFTARROW;
-		break;
-	case SCE_CTRL_CIRCLE:
-		key = KEY_RIGHTARROW;
-		break;
-	case SCE_CTRL_TRIANGLE:
-		key = KEY_UPARROW;
-		break;
-	case SCE_CTRL_CROSS:
-		key = KEY_DOWNARROW;
-		break;
-
-	case SCE_CTRL_R:
-		key = KEY_FIRE;
-		break;
-	case SCE_CTRL_L:
-		key = KEY_USE;
-		break;
-
-	default: break;
-	}
-
-	return key;
-}
-
-static void AddKeyToQueue(bool pressed, uint32_t keyCode)
-{
-	uint8_t key = ConvertToDoomKey(keyCode);
-	uint16_t keyData = (uint16_t)(pressed << 8 | key);
+	uint16_t keyData = (uint16_t)(pressed << 8 | keyCode);
 
 	s_KeyQueue[s_KeyQueueWriteIndex] = keyData;
 	s_KeyQueueWriteIndex++;
@@ -77,25 +36,21 @@ static void HandleKeyInput(void)
 	SceCtrlData data;
 	memset(&data, 0, sizeof(data));
 
-	sceCtrlReadBufferPositive(0, &data, 1);
+	sceCtrlPeekBufferPositive(0, &data, 1);
 
-#define MAP_KEY(key) AddKeyToQueue((data.buttons & (key)) == (key), (key))
+	AddKeyToQueue((data.buttons & SCE_CTRL_SELECT) == SCE_CTRL_SELECT, KEY_ESCAPE);
+	AddKeyToQueue((data.buttons & SCE_CTRL_START) == SCE_CTRL_START, KEY_ENTER);
 
-	MAP_KEY(SCE_CTRL_SELECT);
-	MAP_KEY(SCE_CTRL_START);
+	AddKeyToQueue((data.buttons & SCE_CTRL_TRIANGLE) == SCE_CTRL_TRIANGLE, KEY_UPARROW);
+	AddKeyToQueue((data.buttons & SCE_CTRL_SQUARE) == SCE_CTRL_SQUARE, KEY_LEFTARROW);
+	AddKeyToQueue((data.buttons & SCE_CTRL_CIRCLE) == SCE_CTRL_CIRCLE, KEY_RIGHTARROW);
+	AddKeyToQueue((data.buttons & SCE_CTRL_CROSS) == SCE_CTRL_CROSS, KEY_DOWNARROW);
 
-	MAP_KEY(SCE_CTRL_SQUARE);
-	MAP_KEY(SCE_CTRL_CIRCLE);
-	MAP_KEY(SCE_CTRL_TRIANGLE);
-	MAP_KEY(SCE_CTRL_CROSS);
-
-	MAP_KEY(SCE_CTRL_R);
-	MAP_KEY(SCE_CTRL_L);
-
-#undef MAP_KEY
+	AddKeyToQueue((data.buttons & SCE_CTRL_R) == SCE_CTRL_R, KEY_FIRE);
+	AddKeyToQueue((data.buttons & SCE_CTRL_L) == SCE_CTRL_L, KEY_USE);
 }
 
-#define SCREEN_FB_SIZE ALIGN((DOOMGENERIC_RESX * DOOMGENERIC_RESY * 4), 256 * 1024) // must be 256kb aligned
+#define SCREEN_FB_SIZE ALIGN((DOOMGENERIC_RESX * DOOMGENERIC_RESY * 4), (256 * 1024)) // must be 256kb aligned
 
 SceUID g_displayBlock;
 
@@ -103,6 +58,8 @@ void DG_Init(void)
 {
 	// We need the data to be 256kb aligned, but the previous malloc call won't do.
 	// Thus, we're freeing the data that was previously allocated, and allocating it properly.
+	//
+	// We also need CDRAM (video memory), malloc gives us regular RAM.
 	free(DG_ScreenBuffer);
 
 	g_displayBlock = sceKernelAllocMemBlock("display", SCE_KERNEL_MEMBLOCK_TYPE_USER_CDRAM_RW, SCREEN_FB_SIZE, NULL);
@@ -172,9 +129,9 @@ void DG_SetWindowTitle(const char* title)
 int main(int argc, char **argv)
 {
 	doomgeneric_Create(argc, argv);
+	scePowerSetArmClockFrequency(444);
 
-	static bool running = true;
-	while (running)
+	while (true)
 	{
 		doomgeneric_Tick();
 	}

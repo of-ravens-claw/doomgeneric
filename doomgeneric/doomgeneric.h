@@ -5,7 +5,6 @@
 #include <stdint.h>
 
 #if defined(__ORBIS__)
-// these values are for the base ps4 (720), pro runs at either 1080 or 2160
 #define DOOMGENERIC_RESX   (1280)
 #define DOOMGENERIC_RESY   (720)
 #elif defined(__psp2__)
@@ -37,7 +36,7 @@ void     DG_DrawFrame(void);
 void     DG_SleepMs(uint32_t ms);
 uint32_t DG_GetTicksMs(void);
 int      DG_GetKey(int* pressed, unsigned char* key);
-void     DG_SetWindowTitle(const char * title);
+void     DG_SetWindowTitle(const char* title);
 
 #ifdef __cplusplus
 }

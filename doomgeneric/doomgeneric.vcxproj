@@ -182,7 +182,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <GenerateSnMapFile>NormalMapFile</GenerateSnMapFile>
       <AdditionalLibraryDirectories>$(SCE_PSP2_SDK_DIR)\target\lib\vdsuite;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>-lSceThreadmgr_stub;-lSceDisplayUser_stub;-lSceCtrl_stub</AdditionalDependencies>
+      <AdditionalDependencies>-lSceThreadmgr_stub;-lSceDisplayUser_stub;-lSceCtrl_stub;-lScePower_stub</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -207,7 +207,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <DisableSpecificWarnings>
       </DisableSpecificWarnings>
@@ -219,7 +219,10 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>-lSceRtc_stub_weak;-lScePosix_stub_weak;-lSceVideoOut_stub_weak;-lSceGnmDriver_stub_weak;-lSceGnmx;-lSceGnm;-lSceGpuAddress;-lSceSystemService_stub_weak</AdditionalDependencies>
+      <AdditionalDependencies>-lSceRtc_stub_weak;-lScePosix_stub_weak;-lSceVideoOut_stub_weak;-lSceGnmDriver_stub_weak;-lSceGnmx;-lSceGnm;-lSceGpuAddress;-lSceSystemService_stub_weak;-lSceSysModule_stub_weak;-lSceUserService_stub_weak</AdditionalDependencies>
+      <AdditionalLibraryDirectories>
+      </AdditionalLibraryDirectories>
+      <GenerateMapFile>true</GenerateMapFile>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -257,6 +260,8 @@
       <CompileAs>Default</CompileAs>
       <OptimizationLevel>Level3</OptimizationLevel>
       <AdditionalIncludeDirectories>$(SCE_PSP2_SDK_DIR)\target\include\vdsuite\user;$(SCE_PSP2_SDK_DIR)\target\include\vdsuite\common;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <FastMath>true</FastMath>
+      <InstructionSet>Thumb2</InstructionSet>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -265,7 +270,10 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <GenerateSnMapFile>NormalMapFile</GenerateSnMapFile>
       <AdditionalLibraryDirectories>$(SCE_PSP2_SDK_DIR)\target\lib\vdsuite;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>-lSceThreadmgr_stub;-lSceDisplayUser_stub;-lSceCtrl_stub</AdditionalDependencies>
+      <AdditionalDependencies>-lSceThreadmgr_stub;-lSceDisplayUser_stub;-lSceCtrl_stub;-lScePower_stub</AdditionalDependencies>
+      <InfoStripping>StripSymsAndDebug</InfoStripping>
+      <DataStripping>StripFuncsAndData</DataStripping>
+      <DuplicateStripping>true</DuplicateStripping>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -296,7 +304,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <DisableSpecificWarnings>
       </DisableSpecificWarnings>
@@ -306,13 +314,20 @@
       <CppLanguageStd>Cpp14</CppLanguageStd>
       <CLanguageStd>Gnu99</CLanguageStd>
       <RuntimeTypeInfo>false</RuntimeTypeInfo>
+      <UnrollLoops>true</UnrollLoops>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>-lSceRtc_stub_weak;-lScePosix_stub_weak;-lSceVideoOut_stub_weak;-lSceGnmDriver_stub_weak;-lSceGnmx;-lSceGnm;-lSceGpuAddress;-lSceSystemService_stub_weak</AdditionalDependencies>
+      <AdditionalDependencies>-lSceRtc_stub_weak;-lScePosix_stub_weak;-lSceVideoOut_stub_weak;-lSceGnmDriver_stub_weak;-lSceGnmx;-lSceGnm;-lSceGpuAddress;-lSceSystemService_stub_weak;-lSceSysModule_stub_weak;-lSceUserService_stub_weak</AdditionalDependencies>
+      <AdditionalLibraryDirectories>
+      </AdditionalLibraryDirectories>
+      <GenerateMapFile>true</GenerateMapFile>
+      <InfoStripping>StripSymsAndDebug</InfoStripping>
+      <DataStripping>StripFuncsAndData</DataStripping>
+      <DuplicateStripping>true</DuplicateStripping>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
