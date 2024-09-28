@@ -13,7 +13,7 @@
 #include <ctrl.h>
 #include <power.h>
 
-#define ALIGN(value, align)     (((value) + (align) - 1) & ~((align) - 1))
+#define D_ALIGN(value, align)     (((value) + (align) - 1) & ~((align) - 1))
 
 #define KEYQUEUE_SIZE 16
 
@@ -50,7 +50,7 @@ static void HandleKeyInput(void)
 	AddKeyToQueue((data.buttons & SCE_CTRL_L) == SCE_CTRL_L, KEY_USE);
 }
 
-#define SCREEN_FB_SIZE ALIGN((DOOMGENERIC_RESX * DOOMGENERIC_RESY * 4), (256 * 1024)) // must be 256kb aligned
+#define SCREEN_FB_SIZE D_ALIGN((DOOMGENERIC_RESX * DOOMGENERIC_RESY * 4), (256 * 1024)) // must be 256kb aligned
 
 SceUID g_displayBlock;
 
@@ -61,6 +61,9 @@ void DG_Init(void)
 	//
 	// We also need CDRAM (video memory), malloc gives us regular RAM.
 	free(DG_ScreenBuffer);
+	DG_ScreenBuffer = NULL;
+
+	scePowerSetArmClockFrequency(444);
 
 	g_displayBlock = sceKernelAllocMemBlock("display", SCE_KERNEL_MEMBLOCK_TYPE_USER_CDRAM_RW, SCREEN_FB_SIZE, NULL);
 	if (g_displayBlock < 0)
@@ -129,7 +132,6 @@ void DG_SetWindowTitle(const char* title)
 int main(int argc, char **argv)
 {
 	doomgeneric_Create(argc, argv);
-	scePowerSetArmClockFrequency(444);
 
 	while (true)
 	{

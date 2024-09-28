@@ -5,8 +5,8 @@
 #include <stdint.h>
 
 #if defined(__ORBIS__)
-#define DOOMGENERIC_RESX   (1280)
-#define DOOMGENERIC_RESY   (720)
+#define DOOMGENERIC_RESX   (1920)
+#define DOOMGENERIC_RESY   (1080)
 #elif defined(__psp2__)
 #define DOOMGENERIC_RESX   (960)
 #define DOOMGENERIC_RESY   (544)
