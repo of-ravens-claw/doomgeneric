@@ -26,10 +26,6 @@
 #ifdef _WIN32
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
-#else
-#ifndef __psp2__
-#include <unistd.h>
-#endif
 #endif
 
 #ifdef ORIGCODE
@@ -458,9 +454,9 @@ void I_Error (char *error, ...)
                                         NULL);
     }
 #elif defined(__DJGPP__) || defined(__ORBIS__) || defined(__psp2__)
-    {
-        // nothing, intentional.
-    }
+	{
+		// nothing, intentional.
+	}
 #else
     {
         ZenityErrorBox(msgbuf);

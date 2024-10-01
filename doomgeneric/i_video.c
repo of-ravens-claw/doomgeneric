@@ -41,11 +41,6 @@ rcsid[] = "$Id: i_x.c,v 1.6 1997/02/03 22:45:10 b1 Exp $";
 #include <stdbool.h>
 #include <stdlib.h>
 
-#ifndef __psp2__
-#include <fcntl.h>
-#include <sys/types.h>
-#endif
-
 #include <stdarg.h>
 
 //#define CMAP256
@@ -170,8 +165,10 @@ void cmap_to_fb(uint8_t * out, uint8_t * in, int in_pixels)
         pix |= g << s_Fb.green.offset;
         pix |= b << s_Fb.blue.offset;
 
-        for (k = 0; k < fb_scaling; k++) {
-            for (j = 0; j < s_Fb.bits_per_pixel/8; j++) {
+        for (k = 0; k < fb_scaling; k++) 
+        {
+            for (j = 0; j < s_Fb.bits_per_pixel/8; j++) 
+            {
                 *out = (pix >> (j*8));
                 out++;
             }

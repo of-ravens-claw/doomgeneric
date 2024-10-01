@@ -23,9 +23,7 @@ static uint32_t s_KeyQueueReadIndex = 0;
 
 static void AddKeyToQueue(bool pressed, uint8_t keyCode)
 {
-	uint16_t keyData = (uint16_t)(pressed << 8 | keyCode);
-
-	s_KeyQueue[s_KeyQueueWriteIndex] = keyData;
+	s_KeyQueue[s_KeyQueueWriteIndex] = (uint16_t)(pressed << 8 | keyCode);
 	s_KeyQueueWriteIndex++;
 	s_KeyQueueWriteIndex %= KEYQUEUE_SIZE;
 }
@@ -52,8 +50,6 @@ static void HandleKeyInput(void)
 
 #define SCREEN_FB_SIZE D_ALIGN((DOOMGENERIC_RESX * DOOMGENERIC_RESY * 4), (256 * 1024)) // must be 256kb aligned
 
-SceUID g_displayBlock;
-
 void DG_Init(void)
 {
 	// We need the data to be 256kb aligned, but the previous malloc call won't do.
@@ -65,7 +61,7 @@ void DG_Init(void)
 
 	scePowerSetArmClockFrequency(444);
 
-	g_displayBlock = sceKernelAllocMemBlock("display", SCE_KERNEL_MEMBLOCK_TYPE_USER_CDRAM_RW, SCREEN_FB_SIZE, NULL);
+	SceUID g_displayBlock = sceKernelAllocMemBlock("display", SCE_KERNEL_MEMBLOCK_TYPE_USER_CDRAM_RW, SCREEN_FB_SIZE, NULL);
 	if (g_displayBlock < 0)
 	{
 		printf("sceKernelAllocMemBlock returned 0x%08X\n", g_displayBlock);
@@ -90,7 +86,6 @@ void DG_Init(void)
 void DG_DrawFrame(void)
 {
 	// Do I need to do anything aside from handling input?
-
 	HandleKeyInput();
 }
 
@@ -102,7 +97,7 @@ void DG_SleepMs(uint32_t ms)
 uint32_t DG_GetTicksMs(void)
 {
 	// System time is in microseconds, we want milliseconds
-	return (uint32_t)(sceKernelGetSystemTimeWide() / 1000);
+	return sceKernelGetSystemTimeWide() / 1000;
 }
 
 int DG_GetKey(int* pressed, unsigned char* doomKey)
@@ -113,7 +108,7 @@ int DG_GetKey(int* pressed, unsigned char* doomKey)
 		return 0;
 	}
 
-	unsigned short keyData = s_KeyQueue[s_KeyQueueReadIndex];
+	uint16_t keyData = s_KeyQueue[s_KeyQueueReadIndex];
 	s_KeyQueueReadIndex++;
 	s_KeyQueueReadIndex %= KEYQUEUE_SIZE;
 
@@ -133,13 +128,9 @@ int main(int argc, char **argv)
 {
 	doomgeneric_Create(argc, argv);
 
-	while (true)
+	while (1)
 	{
 		doomgeneric_Tick();
 	}
-
-	// this will likely never run but alas
-	sceDisplaySetFrameBuf(NULL, SCE_DISPLAY_UPDATETIMING_NEXTHSYNC);
-	sceKernelFreeMemBlock(g_displayBlock);
 }
 #endif

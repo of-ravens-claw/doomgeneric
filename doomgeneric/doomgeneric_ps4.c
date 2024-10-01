@@ -14,6 +14,10 @@
 #define USE_GAMEPAD_AS_KEYBOARD
 //#define USE_IME_KEYBOARD
 
+#if defined(USE_GAMEPAD_AS_KEYBOARD) && defined(USE_IME_KEYBOARD)
+#error "Both USE_GAMEPAD_AS_KEYBOARD and USE_IME_KEYBOARD are defined! Only one can be defined at a time!"
+#endif
+
 // If you're using a gamepad as a keyboard, the controls are as follows:
 //
 // R1       - Fire key
@@ -56,7 +60,7 @@ static uint32_t s_KeyQueueReadIndex = 0;
 #define dprintf(...)
 #endif
 
-#ifndef USE_IME_KEYBOARD
+#ifdef USE_GAMEPAD_AS_KEYBOARD
 static uint8_t ConvertToDoomKey(uint8_t key)
 {
 	return key;
@@ -125,6 +129,10 @@ static uint8_t ConvertToDoomKey(uint8_t key)
 		key = KEY_TAB;
 		break;
 
+	case SCE_IME_KEYCODE_BACKSPACE:
+		key = KEY_BACKSPACE;
+		break;
+
 	// remap from ime keycodes to lowercase ascii
 	default:
 		if (key >= SCE_IME_KEYCODE_A && key <= SCE_IME_KEYCODE_Z)
@@ -165,9 +173,9 @@ void HandleIMEKeyboardEvent(void* arg, const SceImeEvent* e)
 	case SCE_IME_KEYBOARD_EVENT_KEYCODE_DOWN: // fallthrough
 	case SCE_IME_KEYBOARD_EVENT_KEYCODE_UP:
 	{
-		const SceImeKeycode& data = e->param.keycode;
+		const SceImeKeycode* data = &e->param.keycode;
 		bool isDown = e->id == SCE_IME_KEYBOARD_EVENT_KEYCODE_DOWN;
-		AddKeyToQueue(isDown, data.keycode);
+		AddKeyToQueue(isDown, data->keycode);
 	}
 	break;
 
@@ -360,7 +368,7 @@ int main(int argc, char **argv)
 {
 	doomgeneric_Create(argc, argv);
 
-	while (true)
+	while (1)
 	{
 		doomgeneric_Tick();
 	}

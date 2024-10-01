@@ -28,13 +28,9 @@
 #if defined(_WIN32)
 #define strcasecmp _stricmp
 #define strncasecmp _strnicmp
-#elif defined(__psp2__)
-// strcasecmp is located in string.h on the psp2
-#include <string.h>
 #else
-#include <strings.h>
+#include <string.h>
 #endif
-
 
 //
 // The packed attribute forces structures to be packed into the minimum 

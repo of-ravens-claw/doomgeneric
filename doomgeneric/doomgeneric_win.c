@@ -1,24 +1,30 @@
 #ifdef _WIN32
-#include "doomkeys.h"
 
+#include "doomkeys.h"
 #include "doomgeneric.h"
 
 #include <stdio.h>
-
 #include <Windows.h>
 
-static BITMAPINFO s_Bmi = { sizeof(BITMAPINFOHEADER), DOOMGENERIC_RESX, -DOOMGENERIC_RESY, 1, 32 };
+static BITMAPINFO s_Bmi = 
+{
+	sizeof(BITMAPINFOHEADER),
+	DOOMGENERIC_RESX,
+	-DOOMGENERIC_RESY,
+	1,
+	32
+};
+
 static HWND s_Hwnd = 0;
 static HDC s_Hdc = 0;
 
-
 #define KEYQUEUE_SIZE 16
 
-static unsigned short s_KeyQueue[KEYQUEUE_SIZE];
-static unsigned int s_KeyQueueWriteIndex = 0;
-static unsigned int s_KeyQueueReadIndex = 0;
+static uint16_t s_KeyQueue[KEYQUEUE_SIZE];
+static uint32_t s_KeyQueueWriteIndex = 0;
+static uint32_t s_KeyQueueReadIndex = 0;
 
-static unsigned char convertToDoomKey(unsigned char key)
+static uint8_t ConvertToDoomKey(uint8_t key)
 {
 	switch (key)
 	{
@@ -49,6 +55,18 @@ static unsigned char convertToDoomKey(unsigned char key)
 	case VK_SHIFT:
 		key = KEY_RSHIFT;
 		break;
+	case VK_OEM_COMMA:
+		key = KEY_STRAFE_L;
+		break;
+	case VK_OEM_PERIOD:
+		key = KEY_STRAFE_R;
+		break;
+	case VK_TAB:
+		key = KEY_TAB;
+		break;
+	case VK_BACK:
+		key = KEY_BACKSPACE;
+		break;
 	default:
 		key = tolower(key);
 		break;
@@ -57,13 +75,12 @@ static unsigned char convertToDoomKey(unsigned char key)
 	return key;
 }
 
-static void addKeyToQueue(int pressed, unsigned char keyCode)
+static void AddKeyToQueue(int pressed, unsigned char keyCode)
 {
-	printf("[AddKeyToQueue]: Key 0x%02X, press: %d\n", keyCode, pressed);
+	//printf("[AddKeyToQueue]: Key 0x%02X, press: %d\n", keyCode, pressed);
 
-	unsigned char key = convertToDoomKey(keyCode);
-
-	unsigned short keyData = (pressed << 8) | key;
+	uint8_t key = ConvertToDoomKey(keyCode);
+	uint16_t keyData = (pressed << 8) | key;
 
 	s_KeyQueue[s_KeyQueueWriteIndex] = keyData;
 	s_KeyQueueWriteIndex++;
@@ -74,26 +91,29 @@ static LRESULT CALLBACK wndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lPara
 {
 	switch (msg)
 	{
+	default: break;
+
 	case WM_CLOSE:
 		DestroyWindow(hwnd);
 		break;
+
 	case WM_DESTROY:
 		PostQuitMessage(0);
 		ExitProcess(0);
-		break;
+
 	case WM_KEYDOWN:
-		addKeyToQueue(1, wParam);
+		AddKeyToQueue(TRUE, wParam & 0xFF);
 		break;
+
 	case WM_KEYUP:
-		addKeyToQueue(0, wParam);
+		AddKeyToQueue(FALSE, wParam & 0xFF);
 		break;
-	default:
-		return DefWindowProcA(hwnd, msg, wParam, lParam);
 	}
-	return 0;
+
+	return DefWindowProcA(hwnd, msg, wParam, lParam);
 }
 
-void DG_Init()
+void DG_Init(void)
 {
 	// window creation
 	const char windowClassName[] = "DoomWindowClass";
@@ -116,47 +136,46 @@ void DG_Init()
 	if (!RegisterClassExA(&wc))
 	{
 		printf("Window Registration Failed!");
-
 		exit(-1);
 	}
 
-	RECT rect;
-	rect.left = rect.top = 0;
-	rect.right = DOOMGENERIC_RESX;
-	rect.bottom = DOOMGENERIC_RESY;
+	RECT rect = 
+	{
+		0,
+		0,
+		DOOMGENERIC_RESX,
+		DOOMGENERIC_RESY
+	};
 	AdjustWindowRect(&rect, WS_OVERLAPPEDWINDOW, FALSE);
 
 	HWND hwnd = CreateWindowExA(0, windowClassName, windowTitle, WS_OVERLAPPEDWINDOW, CW_USEDEFAULT, CW_USEDEFAULT, rect.right - rect.left, rect.bottom - rect.top, 0, 0, 0, 0);
 	if (hwnd)
 	{
 		s_Hwnd = hwnd;
-
 		s_Hdc = GetDC(hwnd);
 		ShowWindow(hwnd, SW_SHOW);
 	}
 	else
 	{
 		printf("Window Creation Failed!");
-
 		exit(-1);
 	}
 
 	memset(s_KeyQueue, 0, KEYQUEUE_SIZE * sizeof(unsigned short));
 }
 
-void DG_DrawFrame()
+void DG_DrawFrame(void)
 {
 	MSG msg;
 	memset(&msg, 0, sizeof(msg));
 
-	while (PeekMessageA(&msg, 0, 0, 0, PM_REMOVE) > 0)
+	while (PeekMessageA(&msg, 0, 0, 0, PM_REMOVE))
 	{
 		TranslateMessage(&msg);
 		DispatchMessageA(&msg);
 	}
 
 	StretchDIBits(s_Hdc, 0, 0, DOOMGENERIC_RESX, DOOMGENERIC_RESY, 0, 0, DOOMGENERIC_RESX, DOOMGENERIC_RESY, DG_ScreenBuffer, &s_Bmi, 0, SRCCOPY);
-
 	SwapBuffers(s_Hdc);
 }
 
@@ -165,33 +184,34 @@ void DG_SleepMs(uint32_t ms)
 	Sleep(ms);
 }
 
-uint32_t DG_GetTicksMs()
+uint32_t DG_GetTicksMs(void)
 {
-	return GetTickCount();
+	LARGE_INTEGER counter;
+	LARGE_INTEGER freq;
+	QueryPerformanceCounter(&counter);
+	QueryPerformanceFrequency(&freq);
+
+	return (counter.QuadPart * 1000) / freq.QuadPart;
 }
 
 int DG_GetKey(int* pressed, unsigned char* doomKey)
 {
 	if (s_KeyQueueReadIndex == s_KeyQueueWriteIndex)
 	{
-		//key queue is empty
-
+		// key queue is empty
 		return 0;
 	}
-	else
-	{
-		unsigned short keyData = s_KeyQueue[s_KeyQueueReadIndex];
-		s_KeyQueueReadIndex++;
-		s_KeyQueueReadIndex %= KEYQUEUE_SIZE;
 
-		*pressed = keyData >> 8;
-		*doomKey = keyData & 0xFF;
+	uint16_t keyData = s_KeyQueue[s_KeyQueueReadIndex];
+	s_KeyQueueReadIndex++;
+	s_KeyQueueReadIndex %= KEYQUEUE_SIZE;
 
-		return 1;
-	}
+	*pressed = keyData >> 8;
+	*doomKey = keyData & 0xFF;
+	return 1;
 }
 
-void DG_SetWindowTitle(const char * title)
+void DG_SetWindowTitle(const char* title)
 {
 	if (s_Hwnd)
 	{
@@ -203,12 +223,9 @@ int main(int argc, char **argv)
 {
     doomgeneric_Create(argc, argv);
 
-    for (int i = 0; ; i++)
+    while (1)
     {
         doomgeneric_Tick();
     }
-    
-
-    return 0;
 }
 #endif
