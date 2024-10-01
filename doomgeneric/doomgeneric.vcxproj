@@ -334,7 +334,7 @@
     <ClCompile Include="am_map.c" />
     <ClCompile Include="doomdef.c" />
     <ClCompile Include="doomgeneric.c" />
-    <ClCompile Include="doomgeneric_ps4.cpp" />
+    <ClCompile Include="doomgeneric_ps4.c" />
     <ClCompile Include="doomgeneric_psp2.c" />
     <ClCompile Include="doomgeneric_win.c" />
     <ClCompile Include="doomstat.c" />

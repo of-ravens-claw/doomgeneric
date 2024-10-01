@@ -255,7 +255,7 @@
     <ClCompile Include="doomgeneric.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="doomgeneric_ps4.cpp">
+    <ClCompile Include="doomgeneric_ps4.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="i_input.c">
