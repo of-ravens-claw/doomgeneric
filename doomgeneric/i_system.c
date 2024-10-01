@@ -459,7 +459,7 @@ void I_Error (char *error, ...)
     }
 #elif defined(__DJGPP__) || defined(__ORBIS__) || defined(__psp2__)
     {
-        printf("I_Error: %s\n", msgbuf);
+        // nothing, intentional.
     }
 #else
     {

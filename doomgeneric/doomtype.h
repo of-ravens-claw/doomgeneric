@@ -63,25 +63,18 @@
 
 #ifdef __cplusplus
 
-// Use builtin bool type with C++.
-
-typedef bool boolean;
+// We can't use the built-in `bool` type because `sizeof(boolean)` must be `4`.
+typedef int boolean;
 
 #else
 
-#if defined __has_include
-#  if __has_include (<stdbool.h>)
-#    include <stdbool.h>
-	 typedef bool boolean;
-#  endif
-#else
+// TODO: Should we also use the C++ typedef here?
 typedef enum
 {
 	false = 0,
 	true = 1,
 	undef = 0xFFFFFFFF
 } boolean;
-#endif
 
 #endif
 

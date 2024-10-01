@@ -119,11 +119,9 @@ R_InstallSpriteLump
 	    I_Error ("R_InitSprites: Sprite %s frame %c has "
 		     "multip rot=0 lump", spritename, 'A'+frame);
 
-#ifndef __ORBIS__ // HACK: For some reason, this keeps triggering.
 	if (sprtemp[frame].rotate == true)
 	    I_Error ("R_InitSprites: Sprite %s frame %c has rotations "
 		     "and a rot=0 lump", spritename, 'A'+frame);
-#endif
 
 	sprtemp[frame].rotate = false;
 	for (r=0 ; r<8 ; r++)

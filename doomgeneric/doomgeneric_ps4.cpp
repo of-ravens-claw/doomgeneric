@@ -1,8 +1,5 @@
 #ifdef __ORBIS__
 
-// This crashes if you leave it running on the title screen.
-// And it throws an error in `R_InstallSpriteLump`, which I hacked out for this build...
-
 #include "doomkeys.h"
 #include "doomgeneric.h"
 
@@ -256,7 +253,7 @@ void DG_Init(void)
 	ret = sceKernelMapDirectMemory(
 		(void**)&DG_ScreenBuffer,
 		SCREEN_FB_SIZE,
-		SCE_KERNEL_PROT_CPU_READ | SCE_KERNEL_PROT_CPU_WRITE | SCE_KERNEL_PROT_GPU_ALL,
+		SCE_KERNEL_PROT_CPU_WRITE | SCE_KERNEL_PROT_GPU_READ,
 		0,
 		offsetOut,
 		shaderGpuAlignment);
