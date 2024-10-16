@@ -14,9 +14,8 @@ static BITMAPINFO s_Bmi =
 	1,
 	32
 };
-
-static HWND s_Hwnd = 0;
-static HDC s_Hdc = 0;
+static HWND s_Hwnd = NULL;
+static HDC s_Hdc = NULL;
 
 #define KEYQUEUE_SIZE 16
 
@@ -87,7 +86,7 @@ static void AddKeyToQueue(int pressed, unsigned char keyCode)
 	s_KeyQueueWriteIndex %= KEYQUEUE_SIZE;
 }
 
-static LRESULT CALLBACK wndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
+static LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
 	switch (msg)
 	{
@@ -115,24 +114,12 @@ static LRESULT CALLBACK wndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lPara
 
 void DG_Init(void)
 {
-	// window creation
-	const char windowClassName[] = "DoomWindowClass";
-	const char windowTitle[] = "Doom";
-	WNDCLASSEXA wc;
-
-	wc.cbSize = sizeof(WNDCLASSEXA);
-	wc.style = 0;
-	wc.lpfnWndProc = wndProc;
-	wc.cbClsExtra = 0;
-	wc.cbWndExtra = 0;
-	wc.hInstance = 0;
-	wc.hIcon = 0;
-	wc.hCursor = 0;
-	wc.hbrBackground = 0;
-	wc.lpszMenuName = 0;
-	wc.lpszClassName = windowClassName;
-	wc.hIconSm = 0;
-
+	WNDCLASSEXA wc = 
+	{
+		.cbSize = sizeof(WNDCLASSEXA),
+		.lpfnWndProc = WndProc,
+		.lpszClassName = "DoomClass"
+	};
 	if (!RegisterClassExA(&wc))
 	{
 		printf("Window Registration Failed!");
@@ -148,7 +135,12 @@ void DG_Init(void)
 	};
 	AdjustWindowRect(&rect, WS_OVERLAPPEDWINDOW, FALSE);
 
-	HWND hwnd = CreateWindowExA(0, windowClassName, windowTitle, WS_OVERLAPPEDWINDOW, CW_USEDEFAULT, CW_USEDEFAULT, rect.right - rect.left, rect.bottom - rect.top, 0, 0, 0, 0);
+	HWND hwnd = CreateWindowExA(0, "DoomClass", "Doom", 
+		WS_OVERLAPPEDWINDOW,
+		CW_USEDEFAULT, CW_USEDEFAULT,
+		rect.right - rect.left,
+		rect.bottom - rect.top, 
+		NULL, NULL, NULL, NULL);
 	if (hwnd)
 	{
 		s_Hwnd = hwnd;
@@ -161,7 +153,7 @@ void DG_Init(void)
 		exit(-1);
 	}
 
-	memset(s_KeyQueue, 0, KEYQUEUE_SIZE * sizeof(unsigned short));
+	memset(s_KeyQueue, 0, KEYQUEUE_SIZE * sizeof(uint16_t));
 }
 
 void DG_DrawFrame(void)
@@ -174,7 +166,7 @@ void DG_DrawFrame(void)
 		TranslateMessage(&msg);
 		DispatchMessageA(&msg);
 	}
-
+	
 	StretchDIBits(s_Hdc, 0, 0, DOOMGENERIC_RESX, DOOMGENERIC_RESY, 0, 0, DOOMGENERIC_RESX, DOOMGENERIC_RESY, DG_ScreenBuffer, &s_Bmi, 0, SRCCOPY);
 	SwapBuffers(s_Hdc);
 }
@@ -191,7 +183,7 @@ uint32_t DG_GetTicksMs(void)
 	QueryPerformanceCounter(&counter);
 	QueryPerformanceFrequency(&freq);
 
-	return (counter.QuadPart * 1000) / freq.QuadPart;
+	return (counter.QuadPart * 1000) / freq.QuadPart; 
 }
 
 int DG_GetKey(int* pressed, unsigned char* doomKey)
@@ -213,16 +205,12 @@ int DG_GetKey(int* pressed, unsigned char* doomKey)
 
 void DG_SetWindowTitle(const char* title)
 {
-	if (s_Hwnd)
-	{
-		SetWindowTextA(s_Hwnd, title);
-	}
+	if (s_Hwnd) SetWindowTextA(s_Hwnd, title);
 }
 
 int main(int argc, char **argv)
 {
     doomgeneric_Create(argc, argv);
-
     while (1)
     {
         doomgeneric_Tick();

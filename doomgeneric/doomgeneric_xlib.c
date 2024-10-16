@@ -1,3 +1,5 @@
+#ifdef __unix__
+
 #include "doomkeys.h"
 
 #include "doomgeneric.h"
@@ -77,7 +79,7 @@ static void addKeyToQueue(int pressed, unsigned int keyCode)
 	s_KeyQueueWriteIndex %= KEYQUEUE_SIZE;
 }
 
-void DG_Init()
+void DG_Init(void)
 {
 	memset(s_KeyQueue, 0, KEYQUEUE_SIZE * sizeof(unsigned short));
 
@@ -125,7 +127,7 @@ void DG_Init()
 }
 
 
-void DG_DrawFrame()
+void DG_DrawFrame(void)
 {
     if (s_Display)
     {
@@ -161,7 +163,7 @@ void DG_SleepMs(uint32_t ms)
     usleep (ms * 1000);
 }
 
-uint32_t DG_GetTicksMs()
+uint32_t DG_GetTicksMs(void)
 {
     struct timeval  tp;
     struct timezone tzp;
@@ -192,7 +194,7 @@ int DG_GetKey(int* pressed, unsigned char* doomKey)
 	}
 }
 
-void DG_SetWindowTitle(const char * title)
+void DG_SetWindowTitle(const char* title)
 {
     if (s_Window)
     {
@@ -212,3 +214,5 @@ int main(int argc, char **argv)
 
     return 0;
 }
+
+#endif

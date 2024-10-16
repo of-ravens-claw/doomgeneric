@@ -354,7 +354,6 @@ int DG_GetKey(int* pressed, unsigned char* doomKey)
 
 	*pressed = keyData >> 8;
 	*doomKey = keyData & 0xFF;
-
 	return 1;
 }
 
