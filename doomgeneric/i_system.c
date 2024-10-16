@@ -269,7 +269,7 @@ void I_Quit (void)
 #endif
 }
 
-#if !defined(_WIN32) && !defined(__MACOSX__) && !defined(__DJGPP__) && !defined(__ORBIS__) && !defined(__psp2__)
+#if !defined(_WIN32) && !defined(__MACOSX__) && !defined(__DJGPP__) && !defined(__ORBIS__) && !defined(__psp2__) && !defined(__psp__)
 #define ZENITY_BINARY "/usr/bin/zenity"
 
 // returns non-zero if zenity is available
@@ -453,7 +453,7 @@ void I_Error (char *error, ...)
                                         message,
                                         NULL);
     }
-#elif defined(__DJGPP__) || defined(__ORBIS__) || defined(__psp2__)
+#elif defined(__DJGPP__) || defined(__ORBIS__) || defined(__psp2__) || defined(__psp__)
 	{
 		// nothing, intentional.
 	}

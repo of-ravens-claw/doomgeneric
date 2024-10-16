@@ -101,6 +101,11 @@
 #define FILES_DIR "/app0"
 #elif defined(__psp2__)
 #define FILES_DIR "app0:"
+#elif defined(__psp__)
+// This is really volatile. 
+// I'd like something like app0, 
+// but it doesn't seem to exist on the PSP.
+#define FILES_DIR "ms0:/PSP/GAME/DoomGeneric"
 #else
 #define FILES_DIR "."
 #endif

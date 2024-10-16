@@ -1,7 +1,6 @@
 #ifdef __unix__
 
 #include "doomkeys.h"
-
 #include "doomgeneric.h"
 
 #include <ctype.h>
@@ -16,7 +15,7 @@
 #include <X11/XKBlib.h>
 
 static Display *s_Display = NULL;
-static Window s_Window = NULL;
+static Window s_Window = 0;
 static int s_Screen = 0;
 static GC s_Gc = 0;
 static XImage *s_Image = NULL;

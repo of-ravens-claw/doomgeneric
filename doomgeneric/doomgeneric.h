@@ -9,6 +9,9 @@
 #elif defined(__psp2__)
 #define DOOMGENERIC_RESX   (960)
 #define DOOMGENERIC_RESY   (544)
+#elif defined(__psp__)
+#define DOOMGENERIC_RESX   (512) /* actually 480, don't ask. */
+#define DOOMGENERIC_RESY   (272)
 #else
 #define DOOMGENERIC_RESX   (640)
 #define DOOMGENERIC_RESY   (400)

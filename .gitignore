@@ -14,3 +14,4 @@ PSVita_Debug/
 PSVita_Release/
 *.WAD
 *.VC*
+.vscode/

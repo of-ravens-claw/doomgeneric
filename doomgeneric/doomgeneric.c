@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <stdlib.h>
 
 #include "m_argv.h"
 #include "doomgeneric.h"
