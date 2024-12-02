@@ -200,7 +200,7 @@ void I_InitGraphics (void)
 	s_Fb.red.length = 8;
 	s_Fb.transp.length = 8;
 
-#if defined(__psp__) || defined(__psp__2)
+#if defined(__psp2__) || defined(__psp__)
 	s_Fb.red.offset = 0;
 	s_Fb.green.offset = 8;
 	s_Fb.blue.offset = 16;
