@@ -33,6 +33,14 @@
 #endif
 #elif defined(__psp2__) || defined(__ORBIS__)
 #include <kernel.h>
+#elif defined(RVL)
+#include <revolution/os.h>
+#include <revolution/dvd.h>
+
+// This is... not great.
+// If this gets freed later on, we're fucked.
+void* RVLMalloc(size_t size, BOOL mem1);
+#define malloc(size) RVLMalloc(size, TRUE)
 #else
 #include <sys/stat.h>
 #include <sys/types.h>
@@ -62,6 +70,9 @@ void M_MakeDirectory(char *path)
     sceKernelMkdir(path, 0755);
 #elif defined(__psp2__)
 	sceIoMkdir(path, 0755);
+#elif defined(RVL)
+	/* nothing */
+	#pragma unused(path)
 #else
     mkdir(path, 0755);
 #endif
@@ -71,6 +82,9 @@ void M_MakeDirectory(char *path)
 
 boolean M_FileExists(char *filename)
 {
+#ifdef RVL
+    return DVDConvertPathToEntrynum(filename) >= 0;
+#else
     FILE *fstream;
 
     fstream = fopen(filename, "r");
@@ -87,6 +101,7 @@ boolean M_FileExists(char *filename)
 
         return errno == EISDIR;
     }
+#endif
 }
 
 //
@@ -117,21 +132,27 @@ long M_FileLength(FILE *handle)
 
 boolean M_WriteFile(char *name, void *source, int length)
 {
+#ifdef RVL
+    #pragma unused(name, source, length)
+    I_Error("M_WriteFile: Not implemented on this platform");
+    return false;
+#else
     FILE *handle;
     int	count;
 	
     handle = fopen(name, "wb");
 
     if (handle == NULL)
-	return false;
+		return false;
 
     count = fwrite(source, 1, length, handle);
     fclose(handle);
 	
     if (count < length)
-	return false;
+		return false;
 		
     return true;
+#endif
 }
 
 
@@ -295,11 +316,33 @@ char *M_StrCaseStr(char *haystack, char *needle)
 // allocated.
 //
 
+#ifdef RVL
+static char* custom_strdup(char* src)
+{
+    char *str;
+    char *p;
+    int len = 0;
+
+    while (src[len])
+        len++;
+    str = malloc(len + 1);
+    p = str;
+    while (*src)
+        *p++ = *src++;
+    *p = '\0';
+    return str;
+}
+#endif
+
 char *M_StringDuplicate(const char *orig)
 {
     char *result;
 
+#ifndef RVL
     result = strdup(orig);
+#else
+    result = custom_strdup(orig);
+#endif
 
     if (result == NULL)
     {
@@ -317,6 +360,11 @@ char *M_StringDuplicate(const char *orig)
 char *M_StringReplace(const char *haystack, const char *needle,
                       const char *replacement)
 {
+#ifdef RVL
+    #pragma unused(haystack, needle, replacement)
+    I_Error("M_StringReplace: Not implemented on this platform");
+    return NULL;
+#else
     char *result, *dst;
     const char *p;
     size_t needle_len = strlen(needle);
@@ -371,6 +419,7 @@ char *M_StringReplace(const char *haystack, const char *needle,
     *dst = '\0';
 
     return result;
+#endif
 }
 
 // Safe string copy function that works like OpenBSD's strlcpy().

@@ -60,6 +60,10 @@ char *P_TempSaveGameFile(void)
 
 char *P_SaveGameFile(int slot)
 {
+#ifdef RVL
+    #pragma unused(slot)
+    return NULL;
+#else
     static char *filename = NULL;
     static size_t filename_size = 0;
     char basename[32];
@@ -74,6 +78,7 @@ char *P_SaveGameFile(int slot)
     M_snprintf(filename, filename_size, "%s%s", savegamedir, basename);
 
     return filename;
+#endif
 }
 
 // Endian-safe integer read/write functions

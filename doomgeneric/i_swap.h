@@ -71,6 +71,29 @@
 
 #endif  // __DJGPP__
 
+#elif defined(RVL)
+
+// Swap 16bit, that is, MSB and LSB byte.
+static inline unsigned short SwapSHORT(unsigned short x)
+{
+    // No masking with 0xFF should be necessary. 
+    return (x>>8) | (x<<8);
+}
+
+// Swapping 32bit.
+static inline unsigned long SwapLONG( unsigned long x)
+{
+    return
+	(x>>24)
+	| ((x>>8) & 0xff00)
+	| ((x<<8) & 0xff0000)
+	| (x<<24);
+}
+
+#define SHORT(x)  ((signed short) SwapSHORT(x))
+#define LONG(x)   ((signed int) SwapLONG(x))
+
+#define SYS_BIG_ENDIAN
 
 #else  // FEATURE_SOUND
 	

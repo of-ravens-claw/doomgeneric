@@ -105,6 +105,8 @@ static int SplitLine(char *line, char **fields, unsigned int max_fields)
     return num_fields;
 }
 
+#include "m_misc.h"
+
 static void ParseLine(gus_config_t *config, char *line)
 {
     char *fields[6];
@@ -122,7 +124,7 @@ static void ParseLine(gus_config_t *config, char *line)
     mapped_id = atoi(fields[MappingIndex()]);
 
     free(config->patch_names[instr_id]);
-    config->patch_names[instr_id] = strdup(fields[5]);
+    config->patch_names[instr_id] = M_StringDuplicate(fields[5]);
     config->mapping[instr_id] = mapped_id;
 }
 

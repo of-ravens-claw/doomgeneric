@@ -654,6 +654,9 @@ void WritePCXfile(char *filename, byte *data,
                   int width, int height,
                   byte *palette)
 {
+#ifdef RVL
+    #pragma unused(filename, data, width, height, palette)
+#else
     int		i;
     int		length;
     pcx_t*	pcx;
@@ -701,6 +704,7 @@ void WritePCXfile(char *filename, byte *data,
     M_WriteFile (filename, pcx, length);
 
     Z_Free (pcx);
+#endif
 }
 
 #ifdef HAVE_LIBPNG
@@ -790,6 +794,7 @@ void WritePNGfile(char *filename, byte *data,
 
 void V_ScreenShot(char *format)
 {
+#ifndef RVL
     int i;
     char lbmname[16]; // haleyjd 20110213: BUG FIX - 12 is too small!
     char *ext;
@@ -838,6 +843,9 @@ void V_ScreenShot(char *format)
                  SCREENWIDTH, SCREENHEIGHT,
                  W_CacheLumpName (DEH_String("PLAYPAL"), PU_CACHE));
     }
+#else
+#pragma unused(format)
+#endif
 }
 
 #define MOUSE_SPEED_BOX_WIDTH  120

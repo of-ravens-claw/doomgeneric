@@ -1128,7 +1128,7 @@ static void LoadIwadDeh(void)
         }
         else
         {
-            chex_deh = strdup("chex.deh");
+            chex_deh = M_StringDuplicate("chex.deh");
         }
 
         // If the dehacked patch isn't found, try searching the WAD
@@ -1734,6 +1734,7 @@ void D_DoomMain (void)
         testcontrols = true;
     }
 
+#ifndef RVL
     // Check for load game parameter
     // We do this here and save the slot number, so that the network code
     // can override it or send the load slot to other players.
@@ -1752,6 +1753,7 @@ void D_DoomMain (void)
         startloadgame = atoi(myargv[p+1]);
     }
     else
+#endif
     {
         // Not loading a game
         startloadgame = -1;
@@ -1826,11 +1828,13 @@ void D_DoomMain (void)
         return;
     }
 
+#ifndef RVL
     if (startloadgame >= 0)
     {
         M_StringCopy(file, P_SaveGameFile(startloadgame), sizeof(file));
         G_LoadGame(file);
     }
+#endif
 
     if (gameaction != ga_loadgame )
     {

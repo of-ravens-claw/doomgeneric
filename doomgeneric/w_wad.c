@@ -83,6 +83,17 @@ unsigned int W_LumpNameHash(const char *s)
     return result;
 }
 
+#ifdef RVL
+#include <revolution/types.h> // for BOOL
+void* RVLMalloc(size_t size, BOOL mem1);
+void* RVLCalloc(size_t num, size_t size, BOOL mem1);
+void RVLFree(void* ptr, BOOL mem1);
+
+#define free(ptr) RVLFree(ptr, TRUE)
+#define malloc(size) RVLMalloc(size, TRUE)
+#define calloc(num, size) RVLCalloc(num, size, TRUE)
+#endif
+
 // Increase the size of the lumpinfo[] array to the specified size.
 static void ExtendLumpInfo(int newnumlumps)
 {

@@ -28,6 +28,13 @@
 static wad_file_t **open_wadfiles = NULL;
 static int num_open_wadfiles = 0;
 
+#ifdef RVL
+#include <revolution/types.h> // for BOOL
+void* RVLMalloc(size_t size, BOOL mem1);
+void* RVLCalloc(size_t num, size_t size, BOOL mem1);
+void RVLFree(void* ptr, BOOL mem1);
+#endif
+
 static int GetFileNumber(wad_file_t *handle)
 {
     int i;
@@ -44,8 +51,18 @@ static int GetFileNumber(wad_file_t *handle)
     // Not found in list.  This is a new file we haven't seen yet.
     // Allocate another slot for this file.
 
+    #ifndef RVL
     open_wadfiles = realloc(open_wadfiles,
                             sizeof(wad_file_t *) * (num_open_wadfiles + 1));
+    #else
+    void* new_open_wadfiles = RVLCalloc(num_open_wadfiles + 1, sizeof(wad_file_t*), FALSE);
+    if (open_wadfiles != NULL)
+    {
+        memcpy(new_open_wadfiles, open_wadfiles, sizeof(wad_file_t*) * num_open_wadfiles);
+        RVLFree(open_wadfiles, FALSE);
+    }
+    open_wadfiles = new_open_wadfiles;
+    #endif
     open_wadfiles[num_open_wadfiles] = handle;
 
     result = num_open_wadfiles;

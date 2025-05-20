@@ -502,6 +502,7 @@ menu_t  SaveDef =
 //
 void M_ReadSaveStrings(void)
 {
+#ifndef RVL
     FILE   *handle;
     int     i;
     char    name[256];
@@ -521,6 +522,7 @@ void M_ReadSaveStrings(void)
 	fclose(handle);
 	LoadMenu[i].status = 1;
     }
+#endif
 }
 
 
@@ -584,6 +586,7 @@ void M_LoadSelect(int choice)
 //
 void M_LoadGame (int choice)
 {
+#ifndef RVL
     if (netgame)
     {
 	M_StartMessage(DEH_String(LOADNET),NULL,false);
@@ -592,6 +595,7 @@ void M_LoadGame (int choice)
 	
     M_SetupNextMenu(&LoadDef);
     M_ReadSaveStrings();
+#endif
 }
 
 
@@ -649,6 +653,7 @@ void M_SaveSelect(int choice)
 //
 void M_SaveGame (int choice)
 {
+#ifndef RVL
     if (!usergame)
     {
 	M_StartMessage(DEH_String(SAVEDEAD),NULL,false);
@@ -660,6 +665,7 @@ void M_SaveGame (int choice)
 	
     M_SetupNextMenu(&SaveDef);
     M_ReadSaveStrings();
+#endif
 }
 
 
@@ -680,6 +686,7 @@ void M_QuickSaveResponse(int key)
 
 void M_QuickSave(void)
 {
+#ifndef RVL
     if (!usergame)
     {
 	S_StartSound(NULL,sfx_oof);
@@ -699,6 +706,7 @@ void M_QuickSave(void)
     }
     DEH_snprintf(tempstring, 80, QSPROMPT, savegamestrings[quickSaveSlot]);
     M_StartMessage(tempstring,M_QuickSaveResponse,true);
+#endif
 }
 
 

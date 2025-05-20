@@ -123,7 +123,7 @@ void Z_Init (void)
 //
 // Z_Free
 //
-void Z_Free (void* ptr)
+void Z_Free2 (void* ptr, const char* file, int line)
 {
     memblock_t*		block;
     memblock_t*		other;
@@ -131,7 +131,7 @@ void Z_Free (void* ptr)
     block = (memblock_t *) ( (byte *)ptr - sizeof(memblock_t));
 
     if (block->id != ZONEID)
-	I_Error ("Z_Free: freed a pointer without ZONEID");
+		I_Error ("Z_Free: freed a pointer without ZONEID (%s, %d)", file, line);
 		
     if (block->tag != PU_FREE && block->user != NULL)
     {
@@ -182,10 +182,12 @@ void Z_Free (void* ptr)
 
 
 void*
-Z_Malloc
+Z_Malloc2
 ( int		size,
   int		tag,
-  void*		user )
+  void*		user,
+  const char* file,
+  int line )
 {
     int		extra;
     memblock_t*	start;
@@ -219,7 +221,7 @@ Z_Malloc
         if (rover == start)
         {
             // scanned all the way around the list
-            I_Error ("Z_Malloc: failed on allocation of %i bytes", size);
+            I_Error ("Z_Malloc: failed on allocation of %i bytes (%s, %d)", size, file, line);
         }
 	
         if (rover->tag != PU_FREE)
@@ -269,7 +271,7 @@ Z_Malloc
     }
 	
 	if (user == NULL && tag >= PU_PURGELEVEL)
-	    I_Error ("Z_Malloc: an owner is required for purgable blocks");
+	    I_Error ("Z_Malloc: an owner is required for purgable blocks (%s, %d)", file, line);
 
     base->user = user;
     base->tag = tag;

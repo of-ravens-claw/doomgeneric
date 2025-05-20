@@ -1538,8 +1538,12 @@ char	savename[256];
 
 void G_LoadGame (char* name) 
 { 
+#ifdef RVL
+    #pragma unused(name)
+#else
     M_StringCopy(savename, name, sizeof(savename));
     gameaction = ga_loadgame; 
+#endif
 } 
  
 #define VERSIONSIZE		16 
@@ -1547,6 +1551,7 @@ void G_LoadGame (char* name)
 
 void G_DoLoadGame (void) 
 {
+#ifndef RVL
     int savedleveltime;
 	 
     gameaction = ga_nothing; 
@@ -1589,6 +1594,7 @@ void G_DoLoadGame (void)
     
     // draw the pattern into the back screen
     R_FillBackScreen (); 
+#endif
 } 
  
 
@@ -1602,9 +1608,13 @@ G_SaveGame
 ( int	slot,
   char*	description )
 {
+#ifdef RVL
+#pragma unused(slot, description)
+#else
     savegameslot = slot;
     M_StringCopy(savedescription, description, sizeof(savedescription));
     sendsave = true;
+#endif
 }
 
 // This is silly.
@@ -1614,7 +1624,8 @@ G_SaveGame
 #endif
 
 void G_DoSaveGame (void) 
-{ 
+{
+#ifndef RVL
     char *savegame_file;
     char *temp_savegame_file;
     char *recovery_savegame_file;
@@ -1687,7 +1698,8 @@ void G_DoSaveGame (void)
     players[consoleplayer].message = DEH_String(GGSAVED);
 
     // draw the pattern into the back screen
-    R_FillBackScreen ();	
+    R_FillBackScreen ();
+#endif
 } 
  
 

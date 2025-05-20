@@ -51,8 +51,8 @@ enum
         
 
 void	Z_Init (void);
-void*	Z_Malloc (int size, int tag, void *ptr);
-void    Z_Free (void *ptr);
+void*	Z_Malloc2 (int size, int tag, void *ptr, const char* file, int line);
+void    Z_Free2 (void *ptr, const char* file, int line);
 void    Z_FreeTags (int lowtag, int hightag);
 void    Z_DumpHeap (int lowtag, int hightag);
 void    Z_FileDumpHeap (FILE *f);
@@ -69,5 +69,14 @@ unsigned int Z_ZoneSize(void);
 #define Z_ChangeTag(p,t)                                       \
     Z_ChangeTag2((p), (t), __FILE__, __LINE__)
 
+#ifdef RVL
+#include <revolution/os.h>
+// If we don't do this, it'll crash
+#define Z_Malloc(size, tag, user) Z_Malloc2(OSRoundUp32B(size), tag, user, __FILE__, __LINE__)
+#else
+#define Z_Malloc(size, tag, user) Z_Malloc2(size, tag, user, __FILE__, __LINE__)
+#endif
+
+#define Z_Free(ptr) Z_Free2(ptr, __FILE__, __LINE__)
 
 #endif

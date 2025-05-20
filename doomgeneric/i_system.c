@@ -53,12 +53,16 @@
 #include <CoreFoundation/CFUserNotification.h>
 #endif
 
-#define DEFAULT_RAM 6 /* MiB */
+#define DEFAULT_RAM 8 /* MiB */
 #define MIN_RAM     6  /* MiB */
 
 #if defined(__ORBIS__) || defined(__psp2__)
 #include <stdlib.h>
 size_t sceLibcHeapSize = 16 * (1024 * 1024);
+#elif defined(RVL)
+#include <revolution/types.h>
+void* RVLMalloc(size_t size, BOOL mem1);
+#define malloc(size) RVLMalloc(size, TRUE) /* MEM1 should be fine here */
 #endif
 
 typedef struct atexit_listentry_s atexit_listentry_t;
@@ -269,7 +273,7 @@ void I_Quit (void)
 #endif
 }
 
-#if !defined(_WIN32) && !defined(__MACOSX__) && !defined(__DJGPP__) && !defined(__ORBIS__) && !defined(__psp2__) && !defined(__psp__)
+#if !defined(_WIN32) && !defined(__MACOSX__) && !defined(__DJGPP__) && !defined(__ORBIS__) && !defined(__psp2__) && !defined(__psp__) && !defined(RVL)
 #define ZENITY_BINARY "/usr/bin/zenity"
 
 // returns non-zero if zenity is available
@@ -453,7 +457,7 @@ void I_Error (char *error, ...)
                                         message,
                                         NULL);
     }
-#elif defined(__DJGPP__) || defined(__ORBIS__) || defined(__psp2__) || defined(__psp__)
+#elif defined(__DJGPP__) || defined(__ORBIS__) || defined(__psp2__) || defined(__psp__) || defined(RVL)
 	{
 		// nothing, intentional.
 	}
@@ -469,9 +473,9 @@ void I_Error (char *error, ...)
 
     exit(-1);
 #else
-    while (true)
-    {
-    }
+    *(volatile unsigned int*)0 = 0; // intentionally crash
+
+    while (true) { } // Didn't crash?! hang anyway
 #endif
 }
 

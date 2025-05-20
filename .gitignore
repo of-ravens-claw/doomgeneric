@@ -15,3 +15,8 @@ PSVita_Release/
 *.WAD
 *.VC*
 .vscode/
+elf2dol_DEBUG_EMULATOR.bat
+elf2dol_DEBUG_HARDWARE.bat
+main.dol
+RVL_DefaultD.elf
+RVL_DefaultD.MAP
